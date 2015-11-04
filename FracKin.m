@@ -75,16 +75,16 @@
 % O or C are ambiguous if movement direction parallels fracture
 %
 % note: footwall is ambiguous in the case of vertical fractures; 
-% input of 90∞ dip will NOT crash FracKin, but such fractures WILL have 
+% input of 90° dip will NOT crash FracKin, but such fractures WILL have 
 % a 50% likelihood for shortening and extension axes to be interchanged; 
-% the problem can be averted by input of 89.9∞ dip; 
+% the problem can be averted by input of 89.9° dip; 
 % if a tenth of a degree matters, then you must be up to evil;
 % sense of shear is ambiguous in the case of horizontal fractures; 
-% input of 0∞ dip will NOT crash FracKin, and input of O or C works okay, 
+% input of 0° dip will NOT crash FracKin, and input of O or C works okay, 
 % but input of T N R or L movement WILL result in a 50% likelihood 
 % for shortening and extension axes to be interchanged; 
-% the problem can be averted by input of 0.1∞ dip; 
-% if a 1∞ difference substantially changes your interpretation, 
+% the problem can be averted by input of 0.1° dip; 
+% if a 1° difference substantially changes your interpretation, 
 % then you probably are up to no good
 
 
@@ -104,7 +104,7 @@ end
 
 clear message;
 
-Bedding = fscanf(inputID, '%g %g %g', [3 1]);
+Bedding = fscanf(inputID, '%g %g %g %g %g', [5 1]);
 input = fscanf(inputID, '%g %g %g %g %s', [5 inf]);
 input = input';
 
@@ -265,7 +265,7 @@ Ambiguity = zeros(FracCount,1);
 SoM = char(zeros(FracCount,3));
 
 for i = 1:FracCount
-	% decimate angular resolution of input data to 1∞
+	% decimate angular resolution of input data to 1°
 % 	OneDegreeResolution = 1/360 * 2*pi;
 	
 	% determine downward-pointing Pole vector in Cartesian coordinates:
@@ -770,57 +770,67 @@ if Bedding(3) == 0
 end
 
 % plot individual fracture data:
-for i = 1:FracCount
-	% plot fracture surface (black great circle)
-	[path] = GreatCircle(FracStrike(i)*pi/180, FracDip(i)*pi/180, 1);
-	plot(path(:,1),path(:,2),'k');
+if Bedding(4) == 0
+    
+    for i = 1:FracCount
+        % plot fracture surface (black great circle)
+        [path] = GreatCircle(FracStrike(i)*pi/180, FracDip(i)*pi/180, 1);
+        plot(path(:,1),path(:,2),'k');
 
-	% plot movement direction (black asterisk)
-	[xp,yp] = StCoordLine(MoveTrend(i)*pi/180, MovePlunge(i)*pi/180, 1);
-	plot(xp,yp,'k*','MarkerFaceColor','k','MarkerSize',10);
-end
-	
+        % plot movement direction (black asterisk)
+        [xp,yp] = StCoordLine(MoveTrend(i)*pi/180, MovePlunge(i)*pi/180, 1);
+        plot(xp,yp,'k*','MarkerFaceColor','k','MarkerSize',10);
+    end
+    
 % plot individual fracture kinematics:
 % saturation value defined by eigenvalues
-for i = 1:FracCount
-	% plot shortening axis (red-intensity-filled circle)
-	[xp,yp] = StCoordLine(KinTrend(i,1)*pi/180, KinPlunge(i,1)*pi/180, 1);
-	Magnitude = sqrt(-EigVal(i,1,1));
-	if Magnitude > 1
-		Magnitude = 1;
-	end
-	if Magnitude < 0.3
-		MarkerEdgeColor = 'w';
-	else
-		MarkerEdgeColor = 'k';		
-	end
-	plot(xp,yp,'ko', ...
-		'MarkerFaceColor',[Magnitude 0 0], ...
-		'MarkerEdgeColor', MarkerEdgeColor, ...
-		'MarkerSize',10);
+elseif Bedding(4) == 1
+    
+    for i = 1:FracCount
+        % plot shortening axis (red-intensity-filled circle)
+        [xp,yp] = StCoordLine(KinTrend(i,1)*pi/180, KinPlunge(i,1)*pi/180, 1);
+        Magnitude = sqrt(-EigVal(i,1,1));
+        if Magnitude > 1
+            Magnitude = 1;
+        end
+        if Magnitude < 0.3
+            MarkerEdgeColor = 'w';
+        else
+            MarkerEdgeColor = 'k';		
+        end
+            plot(xp,yp,'ko', ...
+                'MarkerFaceColor',[Magnitude 0 0], ...
+                'MarkerEdgeColor', MarkerEdgeColor, ...
+                'MarkerSize',10);
 
-	% plot intermediate axis (black-filled circle)
-	[xp,yp] = StCoordLine(KinTrend(i,2)*pi/180, KinPlunge(i,2)*pi/180, 1);
-	plot(xp,yp,'ko', ...
-		'MarkerFaceColor','k', ...
-		'MarkerEdgeColor','w', ...
-		'MarkerSize',10);
-
-	% plot extension axis (green-intensity-filled circle)
-	[xp,yp] = StCoordLine(KinTrend(i,3)*pi/180, KinPlunge(i,3)*pi/180, 1);
-	Magnitude = sqrt(EigVal(i,3,3));
-	if Magnitude > 1
-		Magnitude = 1;
-	end
-	if Magnitude < 0.3
-		MarkerEdgeColor = 'w';
-	else
-		MarkerEdgeColor = 'k';		
-	end
-	plot(xp,yp,'ko', ...
-		'MarkerFaceColor',[0 Magnitude 0], ...
-		'MarkerEdgeColor', MarkerEdgeColor, ...
-		'MarkerSize',10);
+        % plot extension axis (green-intensity-filled circle)
+        [xp,yp] = StCoordLine(KinTrend(i,3)*pi/180, KinPlunge(i,3)*pi/180, 1);
+        Magnitude = sqrt(EigVal(i,3,3));
+        if Magnitude > 1
+            Magnitude = 1;
+        end
+        if Magnitude < 0.3
+            MarkerEdgeColor = 'w';
+        else
+            MarkerEdgeColor = 'k';		
+        end
+            plot(xp,yp,'ko', ...
+                'MarkerFaceColor',[0 Magnitude 0], ...
+                'MarkerEdgeColor', MarkerEdgeColor, ...
+                'MarkerSize',10);
+    end
+end
+	
+if (Bedding(4)+Bedding(5)) == 1
+	
+   % plot intermediate axis (black-filled circle)
+   for i = 1:FracCount
+        [xp,yp] = StCoordLine(KinTrend(i,2)*pi/180, KinPlunge(i,2)*pi/180, 1);
+        plot(xp,yp,'ko', ...
+            'MarkerFaceColor','k', ...
+            'MarkerEdgeColor','w', ...
+            'MarkerSize',10);
+    end
 end
 
 % plot moment tensor sum for fracture population:
